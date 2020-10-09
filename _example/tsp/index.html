@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+    <script src="http://localhost:35729/livereload.js"></script>
+    <canvas id="c" />
+
+    <script>
+        function buildWebsocketURI() {
+            var loc = window.location,
+                ws_prot = "ws:";
+            if (loc.protocol === "https:") {
+                ws_uri = "wss:";
+            }
+            return ws_prot + "//" + loc.host + loc.pathname + "ws"
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            /* WebSocket callbacks */
+            let socket = new WebSocket(buildWebsocketURI());
+            console.log("Attempting Connection...");
+
+            socket.onopen = () => {
+                console.log("Successfully Connected");
+            };
+
+            socket.onclose = event => {
+                console.log("Socket Closed Connection: ", event);
+                socket.send("Client Closed!")
+            };
+
+            socket.onerror = error => {
+                console.log("Socket Error: ", error);
+            };
+
+            var initDone = false;
+            socket.onmessage = event => {
+                let msg = JSON.parse(event.data)
+                console.log(`received: ${event.data}`)
+
+                if (!initDone) {
+                    setupCanvas(msg);
+                    initDone = true;
+                    return;
+                }
+                drawPath(msg);
+            }
+        });
+
+        var ctx = null;
+
+        function setupCanvas(msg) {
+            ctx = document.getElementById('c').getContext('2d');
+
+            window.addEventListener('resize', resizeCanvas, false);
+
+            function resizeCanvas() {
+                const scaleFactor = 0.9;
+
+                // Resize the canvas to fill browser window dynamically.
+                ctx.canvas.width = window.innerWidth;
+                ctx.canvas.height = window.innerHeight;
+
+                var ratio = Math.min(
+                    window.innerWidth / msg.Width,
+                    window.innerHeight / msg.Height
+                );
+                ctx.scale(scaleFactor * ratio, scaleFactor * ratio);
+            }
+
+            resizeCanvas();
+        }
+
+        function drawPath(path) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.moveTo(path[0].X, path[0].Y);
+            for (let i = 0; i < path.length; i++) {
+                ctx.lineTo(path[i].X, path[i].Y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+        }
+    </script>
+</body>
+
+</html>

@@ -70,10 +70,9 @@ func newGenerator(pattern []string) (*SudokuGenerator, error) { // nolint: gocyc
 	return gen, nil
 }
 
-// The generated potential solution is guaranteed to have no
-// duplicates in any row but could have duplicates in a column or sub-grid.
-
-func (gen *SudokuGenerator) Generate(rng *rand.Rand) interface{} {
+// Potential solutions created by New are guaranteed to have no duplicates in
+// any row but could have duplicates in a column or sub-grid.
+func (gen *SudokuGenerator) New(rng *rand.Rand) interface{} {
 	// Clone the template as the basis for this grid.
 	var rows sudoku
 	copy(rows[:], gen.templ[:])

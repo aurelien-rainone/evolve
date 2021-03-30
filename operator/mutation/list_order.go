@@ -6,9 +6,17 @@ import (
 	"github.com/arl/evolve/generator"
 )
 
+// ListOrder is a particular type of mutation operation that doesn't modify
+// genes of an individual (i.e. elements in the list), but reorders them
+// instead. A single mutation basically swaps a random element with the element
+// immediately after it.
+//
+// This operator can either apply a fixed number of mutations to each individual
+// or it can draw values from a random sequence, typically a poisson
+// distribution to determine how many mutations to apply.
 type ListOrder struct {
-	Count          generator.Int
-	MutationAmount generator.Int
+	Count  generator.Int
+	Amount generator.Int
 }
 
 func (op *ListOrder) Apply(sel []interface{}, rng *rand.Rand) []interface{} {
@@ -26,7 +34,7 @@ func (op *ListOrder) Apply(sel []interface{}, rng *rand.Rand) []interface{} {
 			istart := rng.Intn(len(newCand))
 
 			// Determine the amount of mutations for current item.
-			amount := int(op.MutationAmount.Next())
+			amount := int(op.Amount.Next())
 			iend := (istart + amount) % len(newCand)
 			if iend < 0 {
 				iend += len(newCand)

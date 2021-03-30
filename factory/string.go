@@ -3,43 +3,48 @@ package factory
 import (
 	"errors"
 	"math/rand"
-	"unicode/utf8"
+	"unicode"
 )
 
 var (
-	// ErrEmptyAlphabet is the error returned by NewString when providing an
-	// empty alphabet string.
-	ErrEmptyAlphabet = errors.New("alphabet should not be empty")
-
-	// ErrNotASCIIAlphabet is the error returned by NewString when the alphabet
-	// contains some non-ASCII runes.
-	ErrNotASCIIAlphabet = errors.New("alphabet should only contain ASCII runes")
+	errEmptyAlphabet    = errors.New("alphabet can't be empty")
+	errNotASCIIAlphabet = errors.New("alphabet can only contain ASCII runes")
 )
 
-// String is a generator of ASCII string candidates of the specified length and
-// in which runes are randomly chosen from an alphabet
+// String is a factory for creating random strings with chars taken from an
+// alphabet of ASCII chars.
 type String struct {
 	alphabet []byte
 	length   int
 }
 
-// NewString returns a String that generates strings of the specified length
-// from the provided alphabet.
+// NewString returns a factory creating random strings of the specified length
+// where chars are taken from the given alphabet.
 //
-// NewString will return ErrEmptyAlphabet if the alphabet is empty and
-// ErrNotASCIIAlphabet if the alphabet contains some non-ASCII runes.
+// NewString returns an error if alphabet is empty or contains non-ASCII
+// characters.
 func NewString(alphabet string, length int) (*String, error) {
 	if alphabet == "" {
-		return nil, ErrEmptyAlphabet
+		return nil, errEmptyAlphabet
 	}
-	if utf8.RuneCountInString(alphabet) != len(alphabet) {
-		return nil, ErrNotASCIIAlphabet
+
+	if !isASCII(alphabet) {
+		return nil, errNotASCIIAlphabet
 	}
 
 	return &String{
 		alphabet: []byte(alphabet),
 		length:   length,
 	}, nil
+}
+
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
 }
 
 // New creates a random string.

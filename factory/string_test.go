@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,36 +17,34 @@ func TestNewString(t *testing.T) {
 		wantErr  error
 	}{
 		{
-			"valid string generator",
-			"abcdefgh12324;?:",
-			9,
-			nil,
+			name:     "valid string generator",
+			alphabet: "abcdefgh12324;?:",
+			length:   9,
+			wantErr:  nil,
 		},
 		{
-			"empty string generator",
-			"abcdefgh12324;?:",
-			0,
-			nil,
+			name:     "empty string generator",
+			alphabet: "abcdefgh12324;?:",
+			length:   0,
+			wantErr:  nil,
 		},
 		{
-			"not ASCII-only alphabet",
-			"abcdefgh12324本;?:",
-			0,
-			ErrNotASCIIAlphabet,
+			name:     "not ASCII-only alphabet",
+			alphabet: "abcdefgh12324本;?:",
+			length:   0,
+			wantErr:  errNotASCIIAlphabet,
 		},
 		{
-			"empty alphabet",
-			"",
-			10,
-			ErrEmptyAlphabet,
+			name:     "empty alphabet",
+			alphabet: "",
+			length:   10,
+			wantErr:  errEmptyAlphabet,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewString(tt.alphabet, tt.length)
-			if tt.wantErr != err {
-				t.Errorf("NewString(), wantErr = %v, got %v", tt.wantErr, err)
-			}
+			assert.ErrorIs(t, err, tt.wantErr)
 		})
 	}
 }
@@ -56,7 +55,7 @@ func TestStringFactory(t *testing.T) {
 
 	s := factory.New(rand.New(rand.NewSource(99)))
 	if s, ok := s.(string); !ok {
-		t.Errorf("GenerateCandidate should generate string candidates, got %T", s)
+		t.Errorf("New should generate string candidates, got %T", s)
 	}
 }
 
